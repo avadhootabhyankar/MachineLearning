@@ -1,0 +1,14 @@
+*.csv
+*.data
+*.tsv
+*.names
+*.7z
+*.zip
+*.tar
+*.rst
+*.ods
+*.data
+*.txt
+*.actual
+*.train
+*.test
