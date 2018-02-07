@@ -12,3 +12,4 @@
 *.actual
 *.train
 *.test
+*.gz
