@@ -2,37 +2,49 @@ import numpy as np # linear algebra
 import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import seaborn as sns # data visualization library  
 import matplotlib.pyplot as plt
+import matplotlib
 
 # Input data files are available in the "../input/" directory.
 # For example, running this (by clicking run or pressing Shift+Enter) will list the files in the input directory
 
-from subprocess import check_output
-print(check_output(["ls", "."]).decode("utf8"))
+#from subprocess import check_output
+#print(check_output(["ls", "."]).decode("utf8"))
 
 # Any results you write to the current directory are saved as output.
 
-data = pd.read_csv('adult.csv')
+data = pd.read_csv('IsUpselledMini.csv')
 print(data.head())
 
 col = data.columns
 print(col)
 
-data = data.dropna()
-
 # y includes our labels and x includes our features
-y = data.income # M or B 
-trainId = data.id
-list = ['id','income']
+y = data.IsUpselled
+trainId = data.EasyId
+#EasyId,EntryStatus,Gender,Birthdate,A1,A2,A2-1,A2-2,IsUpselled,ApplyYear,ApplyMonth
+list = ['EasyId','IsUpselled','EntryStatus']
 x = data.drop(list,axis = 1 )
-x.head()
-
-ax = sns.countplot(y,label="Count")       # M = 212, B = 357
-lte50k, gt50k = y.value_counts()
-print('Number of Less than or equal to 50K: ', lte50k)
-print('Number of Greater than 50K : ', gt50k)
+#x.head()
+print(x.describe())
+ax = sns.countplot(x.A1, label="カウント")
 plt.show()
 
-print(x.describe())
+ax = sns.countplot(x.A2, label="カウント")
+plt.show()
+
+#ax = sns.countplot(x[['A2-1']], label="カウント")
+#plt.show()
+
+#ax = sns.countplot(x[['A2-2']], label="カウント")
+#plt.show()
+
+ax = sns.countplot(x.ApplyYear, label="カウント")
+plt.show()
+
+ax = sns.countplot(x.ApplyMonth, label="カウント")
+plt.show()
+
+'''
 
 # Find Missing Ratio of Dataset
 print("Missing values")
@@ -41,19 +53,8 @@ x_na = x_na.drop(x_na[x_na == 0].index).sort_values(ascending=False)[:30]
 missing_data = pd.DataFrame({'Missing Ratio' :x_na})
 print(missing_data)
 
-'''
-# Percent missing data by feature
-f, ax = plt.subplots(figsize=(15, 12))
-plt.xticks(rotation='90')
-sns.barplot(x=x_na.index, y=x_na)
-plt.xlabel('Features', fontsize=15)
-plt.ylabel('Percent of missing values', fontsize=15)
-plt.title('Percent missing data by feature', fontsize=15)
-plt.show()
-'''
-
 from sklearn.preprocessing import LabelEncoder
-cols = ('workclass','education','marital-status','occupation','Farming-fishing','race','sex','native-country')
+cols = ('Gender','A1','A2','A2-1','A2-2','ApplyYear','ApplyMonth')
 # Process columns and apply LabelEncoder to categorical features
 for c in cols:
 	print(c)
@@ -61,27 +62,38 @@ for c in cols:
 	lbl.fit(x[c].values.tolist()) 
 	x[c] = lbl.transform(x[c].values.tolist())
 
-'''
+ax = sns.countplot(y, label="Count")       # M = 212, B = 357
+N, Y = y.value_counts()
+print('Number of Upselled: ', Y)
+print('Number of NonUpselled : ',N)
+print('Upsell Ration : ', Y/N*100)
+plt.show()
+
 sns.set(style="whitegrid", palette="muted")
-data_dia = y
 data = x
 data_n_2 = (data - data.mean()) / (data.std())              # standardization
-data = pd.concat([y,data_n_2.iloc[0:1000,0:5]],axis=1)
-data = pd.melt(data,id_vars="income",
+data = pd.concat([y,data_n_2.iloc[0:100,0:7]],axis=1)
+data = pd.melt(data,id_vars="IsUpselled",
                     var_name="features",
                     value_name='value')
 plt.figure(figsize=(10,10))
-sns.swarmplot(x="features", y="value", hue="income", data=data)
+sns.swarmplot(x="features", y="value", hue="IsUpselled", data=data)
 plt.xticks(rotation=90)
 plt.show()
-'''
 
 ##########################################################################
 # 1. Feature selection with correlation and random forest classification #
 ##########################################################################
 
 x_1 = x
-print(x_1.head())
+#print(x_1.head())
+print("Gender : ", x_1.Gender.unique())
+print("A1 : ", x_1.A1.unique())
+print("A2 : ", x_1.A2.unique())
+#print("A2-1 : ", x_1.A2-1.unique())
+#print("A2-2 : ", x_1.A2-2.unique())
+print("ApplyYear : ", x_1.ApplyYear.unique())
+print("ApplyMonth : ", x_1.ApplyMonth.unique())
 
 #correlation map
 f,ax = plt.subplots(figsize=(14, 14))
@@ -104,6 +116,15 @@ ac = accuracy_score(y_test,clf_rf.predict(x_test))
 print('Accuracy is: ',ac)
 cm = confusion_matrix(y_test,clf_rf.predict(x_test))
 sns.heatmap(cm,annot=True,fmt="d")
+plt.show()
+
+proba = clf_rf.predict_proba(x_test)[:,1]
+proba.sort()
+id = pd.Series(range(1, len(proba) + 1))
+plt.figure(figsize=(4, 8))
+plt.xlabel("Test #")
+plt.ylabel("Probablity")
+plt.scatter(id, proba)
 plt.show()
 
 ####################################################################
@@ -237,3 +258,4 @@ plt.axis('tight')
 plt.xlabel('n_components')
 plt.ylabel('explained_variance_ratio_')
 plt.show()
+'''
